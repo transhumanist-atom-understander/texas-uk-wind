@@ -1,4 +1,6 @@
-The United Kingdom has never in any year generated more wind power than the state of Texas, despite having over twice the population.
+The United Kingdom has never in any year generated more wind power than the state of Texas, despite having over twice the population:
+
+
 (Texas data from ERCOT, UK data from OWID, code in the repo for this post.)
 
 I'm just irritated by people citing the UK as a major renewable energy success, always quoting relative numbers.
@@ -20,7 +22,7 @@ They blend in with the opposition to building anything at all.
 
 Texas's wind capacity has been much cheaper to build because it is entirely onshore, whereas UK wind generation was 60% offshore in 2025.
 We must forgive the UK for having less onshore wind than Texas, because they have less land.
-But Texas has also pulled ahead in _density_ of onshore wind generation, with about 20% more generation per unit area than the UK in 2025.
+But Texas has also pulled ahead in _density_ of onshore wind generation, with about 20% more generation per unit area than the UK in 2025:
 
 What went wrong?
 Building onshore wind in England was de facto illegal for years, and is still proceeding slowly.
@@ -29,3 +31,9 @@ Sometimes I think it's more important that the Texans are allowed to build power
 One scandal of the UK grid is how much wind power is generated but not delivered.
 But more importantly, I wonder how much we blame on NIMBY opposition to wind developments, which we should blame on slow construction of power lines.
 I suppose that when it's hard to build power lines, wind developments are constrained to be near population centers, exposing themselves to more opposition.
+
+In a wider sense, I don't know what went wrong.
+Something about culture, financing, government, I don't know.
+
+This is just all what I want you to have in mind when you hear about the _fraction_ of UK power generated from wind.
+That should sound like "over half as tall as Danny Devito" or whatever other underwhelming comparisons.
