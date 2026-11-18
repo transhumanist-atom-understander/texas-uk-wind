@@ -363,19 +363,14 @@ combined_onshore_wind <- bind_rows(
     uk = uk_onshore_wind,
     .id = 'place')
 
-# Power density, as average milliwatts per square metre of land. Wind density
-# uses onshore wind only
+# Onshore wind power density, as average milliwatts per square metre of land
 gw2mw <- 1e12
 km2_to_m2 <- 1e6
 combined_density <- combined_onshore_wind |>
     rename(gw_onshore_wind = gw) |>
-    inner_join(combined_total |> rename(gw_total = gw),
-               by = c('place', 'year')) |>
     inner_join(land_area, by = 'place') |>
     mutate(onshore_wind_density_mw_per_m2 =
-               gw_onshore_wind * gw2mw / (land_km2 * km2_to_m2),
-           total_density_mw_per_m2 =
-               gw_total * gw2mw / (land_km2 * km2_to_m2))
+               gw_onshore_wind * gw2mw / (land_km2 * km2_to_m2))
 stopifnot(nrow(combined_density) == 2 * length(2007:2025))
 
 #' Line plot of a yearly value for Texas and the UK
@@ -478,16 +473,11 @@ ggsave('uk_onshore_offshore_share_of_generation.png',
        uk_wind_type_total_share_plot,
        width = unit(4, 'in'), height = unit(4, 'in'))
 
-wind_density_plot <- place_plot(combined_density, 'onshore_wind_density_mw_per_m2',
+wind_density_plot <- place_plot(combined_density,
+                                'onshore_wind_density_mw_per_m2',
                                 'Average mW per square metre',
                                 'Onshore wind power density')
 ggsave('onshore_wind_density.png', wind_density_plot,
-       width = unit(4, 'in'), height = unit(4, 'in'))
-
-total_density_plot <- place_plot(combined_density, 'total_density_mw_per_m2',
-                                 'Average mW per square metre',
-                                 'Total generation density')
-ggsave('total_generation_density.png', total_density_plot,
        width = unit(4, 'in'), height = unit(4, 'in'))
 
 # 2025 values for all plots, one row per metric with a column per place,
@@ -504,8 +494,7 @@ values_2025 <- combined_per_capita |>
     inner_join(combined_density |>
                    filter(year == 2025) |>
                    select(place, onshore_wind_gw = gw_onshore_wind, land_km2,
-                          onshore_wind_density_mw_per_m2,
-                          total_density_mw_per_m2),
+                          onshore_wind_density_mw_per_m2),
                by = 'place') |>
     left_join(uk_wind_by_type |>
                   filter(year == 2025, type == 'offshore') |>
@@ -521,7 +510,7 @@ values_2025 <- combined_per_capita |>
     pivot_wider(names_from = place, values_from = value) |>
     mutate(texas_to_uk_ratio = texas / uk,
            uk_to_texas_ratio = uk / texas)
-stopifnot(nrow(values_2025) == 13,
+stopifnot(nrow(values_2025) == 12,
           identical(names(values_2025),
                     c('metric', 'texas', 'uk',
                       'texas_to_uk_ratio', 'uk_to_texas_ratio')))
