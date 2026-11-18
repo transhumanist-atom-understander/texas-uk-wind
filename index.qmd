@@ -1,0 +1,31 @@
+The United Kingdom has never in any year generated more wind power than the state of Texas, despite having over twice the population.
+(Texas data from ERCOT, UK data from OWID, code in the repo for this post.)
+
+I'm just irritated by people citing the UK as a major renewable energy success, always quoting relative numbers.
+Like: in 2025, 29% of UK electricity came from wind, how impressive.
+Well, in Texas it was 23%, but that's more impressive than 29% of UK electricity because the UK doesn't generate that much electricity.
+
+While the UK doesn't need as much electricity as Texas, because they don't have to air condition houses in the Texas heat, they need more than they're generating.
+They could use some air conditioning, first of all.
+They don't have dryers.
+Or, have them but don't run them, [like this guy on r/askUK](https://www.reddit.com/r/AskUK/comments/10o6hll/comment/j6e1x5m/), because of the electricity bill.
+
+There was [a BBC article](https://www.bbc.com/news/articles/c86ey5n9vx9o) where they talked to a guy who had a heat pump installed, but went back to using the gas burner, because it was so expensive to power the heat pump.
+This kind of thing is why Brits can't spin their low electricity use as enlightened and environmentally friendly.
+They have big plans for heat pumps, electric cars, hydrogen, but can't power them.
+
+So I'm irritated with those trumpeting the UK as a renewable energy success, but I'm also irritated with the opposition to wind.
+As if the issue is that in an insane spending spree, too many wind turbines were built, when really it is just not that much.
+They blend in with the opposition to building anything at all.
+
+Texas's wind capacity has been much cheaper to build because it is entirely onshore, whereas UK wind generation was 60% offshore in 2025.
+We must forgive the UK for having less onshore wind than Texas, because they have less land.
+But Texas has also pulled ahead in _density_ of onshore wind generation, with about 20% more generation per unit area than the UK in 2025.
+
+What went wrong?
+Building onshore wind in England was de facto illegal for years, and is still proceeding slowly.
+Onshore wind farms were still being built in Scotland and Wales, which created the problem of transporting the power.
+Sometimes I think it's more important that the Texans are allowed to build power lines than that they are allowed to build generation.
+One scandal of the UK grid is how much wind power is generated but not delivered.
+But more importantly, I wonder how much we blame on NIMBY opposition to wind developments, which we should blame on slow construction of power lines.
+I suppose that when it's hard to build power lines, wind developments are constrained to be near population centers, exposing themselves to more opposition.
