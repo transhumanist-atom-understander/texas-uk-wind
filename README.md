@@ -1,4 +1,4 @@
-The United Kingdom has not generated more wind power than the state of Texas in any year since 2000, despite having over twice the population:
+The United Kingdom generates less wind power than Texas every year, despite having over twice the population:
 
 ![](https://res.cloudinary.com/lesswrong-2-0/image/upload/v1794983095/lexical_client_uploads/teb3lnyhwkmvkg0vjchc.png)
 
