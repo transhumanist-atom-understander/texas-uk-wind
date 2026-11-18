@@ -395,40 +395,44 @@ place_plot <- function(data, y, ylab, title)
         ggtitle(title)
 }
 
+# Size used for every saved plot. Change these to resize all of them.
+plot_width <- unit(4, 'in')
+plot_height <- unit(4, 'in')
+
 wind_plot <- place_plot(combined_wind, 'gw', 'Average generation (GW)',
                         'Wind power generation')
 ggsave('wind_generation.png', wind_plot,
-       width = unit(4, 'in'), height = unit(4, 'in'))
+       width = plot_width, height = plot_height)
 
 share_plot <- place_plot(combined_share, 'share_pct',
                          'Share of generation (%)',
                          'Wind share of electricity')
 ggsave('wind_share.png', share_plot,
-       width = unit(4, 'in'), height = unit(4, 'in'))
+       width = plot_width, height = plot_height)
 
 total_plot <- place_plot(combined_total, 'gw', 'Average generation (GW)',
                          'Total electricity generation')
 ggsave('total_generation.png', total_plot,
-       width = unit(4, 'in'), height = unit(4, 'in'))
+       width = plot_width, height = plot_height)
 
 population_plot <- place_plot(combined_population |>
                                   mutate(population_m = population / 1e6),
                               'population_m', 'Population (millions)',
                               'Population')
 ggsave('population.png', population_plot,
-       width = unit(4, 'in'), height = unit(4, 'in'))
+       width = plot_width, height = plot_height)
 
 wind_per_capita_plot <- place_plot(combined_per_capita, 'wind_w_per_capita',
                                    'Average W per person',
                                    'Wind generation per capita')
 ggsave('wind_generation_per_capita.png', wind_per_capita_plot,
-       width = unit(4, 'in'), height = unit(4, 'in'))
+       width = plot_width, height = plot_height)
 
 total_per_capita_plot <- place_plot(combined_per_capita, 'total_w_per_capita',
                                     'Average W per person',
                                     'Total generation per capita')
 ggsave('total_generation_per_capita.png', total_per_capita_plot,
-       width = unit(4, 'in'), height = unit(4, 'in'))
+       width = plot_width, height = plot_height)
 
 #' Line plot of a yearly value for UK onshore and offshore wind
 #'
@@ -457,28 +461,28 @@ uk_wind_type_plot <- wind_type_plot(uk_wind_by_type, 'gw',
                                     'Average generation (GW)',
                                     'UK wind generation')
 ggsave('uk_onshore_offshore_wind.png', uk_wind_type_plot,
-       width = unit(4, 'in'), height = unit(4, 'in'))
+       width = plot_width, height = plot_height)
 
 uk_wind_type_share_plot <- wind_type_plot(uk_wind_type_shares, 'pct_of_wind',
                                           'Share of wind generation (%)',
                                           'UK wind by type',
                                           ylim = c(0, 100))
 ggsave('uk_onshore_offshore_share_of_wind.png', uk_wind_type_share_plot,
-       width = unit(4, 'in'), height = unit(4, 'in'))
+       width = plot_width, height = plot_height)
 
 uk_wind_type_total_share_plot <- wind_type_plot(
     uk_wind_type_shares, 'pct_of_all_generation',
     'Share of all generation (%)', 'UK wind share by type')
 ggsave('uk_onshore_offshore_share_of_generation.png',
        uk_wind_type_total_share_plot,
-       width = unit(4, 'in'), height = unit(4, 'in'))
+       width = plot_width, height = plot_height)
 
 wind_density_plot <- place_plot(combined_density,
                                 'onshore_wind_density_mw_per_m2',
                                 'Average mW per square meter',
                                 'Onshore wind power density')
 ggsave('onshore_wind_density.png', wind_density_plot,
-       width = unit(4, 'in'), height = unit(4, 'in'))
+       width = plot_width, height = plot_height)
 
 # 2025 values for all plots, one row per metric with a column per place,
 # plus the ratios between places in both directions
