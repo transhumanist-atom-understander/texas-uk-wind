@@ -1,16 +1,16 @@
-The United Kingdom has never in any year generated more wind power than the state of Texas, despite having over twice the population.
+The United Kingdom has not generated more wind power than the state of Texas in any year since 2000, despite having over twice the population.
 (Texas data from ERCOT, UK data from OWID, code in the repo for this post.)
 
 I'm just irritated by people citing the UK as a major renewable energy success, always quoting relative numbers.
 Like: in 2025, 29% of UK electricity came from wind, how impressive.
-Well, in Texas it was 23%, but that's more impressive than 29% of UK electricity because the UK doesn't generate that much electricity.
+Well, in Texas it was 24%, but that's more impressive than 29% of UK electricity because the UK doesn't generate that much electricity.
 
 While the UK doesn't need as much electricity as Texas, because they don't have to air condition houses in the Texas heat, they need more than they're generating.
 They could use some air conditioning, first of all.
 They don't have dryers.
-Or, have them but don't run them, [like this guy on r/askUK](https://www.reddit.com/r/AskUK/comments/10o6hll/comment/j6e1x5m/), because of the electricity bill.
+Or, have them but don't run them, [like this guy on r/AskUK](https://www.reddit.com/r/AskUK/comments/10o6hll/comment/j6e1x5m/), because of the electricity bill.
 
-There was [a BBC article](https://www.bbc.com/news/articles/c86ey5n9vx9o) where they talked to a guy who had a heat pump installed, but went back to using the gas burner, because it was so expensive to power the heat pump.
+There was [a BBC article](https://www.bbc.com/news/articles/c86ey5n9vx9o) where they talked to a guy who had a heat pump installed, but went back to using the gas boiler, because it was so expensive to power the heat pump.
 This kind of thing is why Brits can't spin their low electricity use as enlightened and environmentally friendly.
 They have big plans for heat pumps, electric cars, hydrogen, but can't power them.
 
