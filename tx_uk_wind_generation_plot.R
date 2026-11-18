@@ -136,6 +136,15 @@ texas_wind_generation <- texas_generation |>
 # Check that all years are present
 stopifnot(all(2007:2025 %in% texas_wind_generation$year))
 
+# Total generation is the sum over fuels, excluding the workbooks' own total
+# row. The 2007 workbook has no total row; in other years the sum matches it.
+# This includes 'WSL' (wholesale storage load), which is negative
+texas_total_generation <- texas_generation |>
+    filter(toupper(fuel) != 'TOTAL') |>
+    group_by(year) |>
+    summarise(gw = sum(gw))
+stopifnot(all(2007:2025 %in% texas_total_generation$year))
+
 # UK wind generation from Our World in Data:
 # https://ourworldindata.org/grapher/wind-generation
 
@@ -153,22 +162,79 @@ uk_wind <- readRDS(uk_file) |>
     mutate(gw = twh_annual * twh2gw) |>
     select(year, gw)
 
+# UK total electricity generation from Our World in Data:
+# https://ourworldindata.org/grapher/electricity-generation
+uk_total_file <- file.path(data_dir, 'uk_total_generation.rds')
+if (!file.exists(uk_total_file))
+    saveRDS(owid_get('electricity-generation', entities = 'GBR',
+                     start_date = 2007),
+            uk_total_file)
+uk_total <- readRDS(uk_total_file) |>
+    select(year, twh_annual = total_generation__twh) |>
+    mutate(gw = twh_annual * twh2gw) |>
+    select(year, gw)
+
 combined_wind <- bind_rows(
     texas = texas_wind_generation,
     uk = uk_wind,
     .id = 'place')
 
-wind_plot <- ggplot(combined_wind,
-                    aes(x = year, y = gw, color = place)) +
-    geom_line() +
-    geom_point() +
-    scale_x_continuous(name = 'Year') +
-    scale_y_continuous(name = 'Average generation (GW)', limits = c(0, NA)) +
-    # Default color scale, but remove the label from the guide, and capitalize
-    # properly
-    scale_color_discrete(name = NULL,
-                         labels = c('texas' = 'Texas', 'uk' = 'UK')) +
-    theme(legend.position = 'bottom') +
-    ggtitle('Wind power generation')
+combined_total <- bind_rows(
+    texas = texas_total_generation,
+    uk = uk_total,
+    .id = 'place')
+
+# Wind share of total generation, as a percentage
+combined_share <- inner_join(combined_wind, combined_total,
+                             by = c('place', 'year'),
+                             suffix = c('_wind', '_total')) |>
+    mutate(share_pct = 100 * gw_wind / gw_total)
+
+#' Line plot of a yearly value for Texas and the UK
+#'
+#' @param data  tibble with columns place, year, and the y variable
+#' @param y     Name of the column to plot on the y axis
+#' @param ylab  Y axis label
+#' @param title Plot title
+#' @return ggplot object
+place_plot <- function(data, y, ylab, title)
+{
+    ggplot(data, aes(x = year, y = .data[[y]], color = place)) +
+        geom_line() +
+        geom_point() +
+        scale_x_continuous(name = 'Year') +
+        scale_y_continuous(name = ylab, limits = c(0, NA)) +
+        # Default color scale, but remove the label from the guide, and
+        # capitalize properly
+        scale_color_discrete(name = NULL,
+                             labels = c('texas' = 'Texas', 'uk' = 'UK')) +
+        theme(legend.position = 'bottom') +
+        ggtitle(title)
+}
+
+wind_plot <- place_plot(combined_wind, 'gw', 'Average generation (GW)',
+                        'Wind power generation')
 ggsave('wind_generation.png', wind_plot,
        width = unit(4, 'in'), height = unit(4, 'in'))
+
+share_plot <- place_plot(combined_share, 'share_pct',
+                         'Share of generation (%)',
+                         'Wind share of electricity')
+ggsave('wind_share.png', share_plot,
+       width = unit(4, 'in'), height = unit(4, 'in'))
+
+total_plot <- place_plot(combined_total, 'gw', 'Average generation (GW)',
+                         'Total electricity generation')
+ggsave('total_generation.png', total_plot,
+       width = unit(4, 'in'), height = unit(4, 'in'))
+
+# 2025 values for all three plots
+values_2025 <- combined_share |>
+    filter(year == 2025) |>
+    transmute(place = c('texas' = 'Texas', 'uk' = 'UK')[place],
+              year,
+              wind_gw = gw_wind,
+              total_gw = gw_total,
+              wind_share_pct = share_pct)
+stopifnot(nrow(values_2025) == 2)
+write_csv(values_2025, 'values_2025.csv')
