@@ -80,7 +80,11 @@ dir.create(ercot_dir, showWarnings = FALSE)
 # The zip is ~70 MB; the default 60 s timeout can be too short
 options(timeout = max(600, getOption('timeout')))
 download.file(ercot_url, ercot_zip, mode = 'wb')
-infiles <- tibble(filename = unzip(ercot_zip, exdir = ercot_dir),
+# 2025 is published as its own file, "Fuel Mix Report: 2025"
+ercot_2025_url <- 'https://www.ercot.com/files/docs/2025/02/07/IntGenbyFuel2025.xlsx'
+ercot_2025 <- file.path(ercot_dir, basename(ercot_2025_url))
+download.file(ercot_2025_url, ercot_2025, mode = 'wb')
+infiles <- tibble(filename = c(unzip(ercot_zip, exdir = ercot_dir), ercot_2025),
         year = as.integer(str_extract(basename(filename),
                                       '^IntGen[Bb]yFuel(\\d+)\\.xls',
                                       group = 1)))
@@ -101,7 +105,7 @@ old_format_values <- old_format_years |>
 # Mathematica:
 # UnitConvert[Quantity[1, ("Hours"*"Gigawatts")/"Years"], "GW"]
 gwh2gw <- 1/8760
-new_format_years <- tibble(year = 2017:2024)
+new_format_years <- tibble(year = 2017:2025)
 new_format_values <- new_format_years |>
     left_join(infiles, by = 'year') |>
     group_by(year) |>
@@ -116,7 +120,7 @@ texas_wind_generation <- texas_generation |>
     filter(fuel == 'Wind' | fuel == 'Wnd') |>
     select(year, gw)
 # Check that all years are present
-stopifnot(all(2007:2024 %in% texas_wind_generation$year))
+stopifnot(all(2007:2025 %in% texas_wind_generation$year))
 
 # UK wind generation from Our World in Data:
 # https://ourworldindata.org/grapher/wind-generation
