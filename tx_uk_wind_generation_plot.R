@@ -146,22 +146,10 @@ texas_total_generation <- texas_generation |>
     summarise(gw = sum(gw))
 stopifnot(all(2007:2025 %in% texas_total_generation$year))
 
-# UK wind generation from Our World in Data:
-# https://ourworldindata.org/grapher/wind-generation
-
 # Converting terawatt hours per year to gigawatts
 # Mathematica:
 # UnitConvert[Quantity[1, "Hours" "Terawatts"]*Quantity[1, (1/("Years"))], "GW"]
 twh2gw <- 25/219
-
-uk_file <- file.path(data_dir, 'uk_wind_generation.rds')
-if (!file.exists(uk_file))
-    saveRDS(owid_get('wind-generation', entities = 'GBR', start_date = 2007),
-            uk_file)
-uk_wind <- readRDS(uk_file) |>
-    select(year, twh_annual = wind_generation__twh) |>
-    mutate(gw = twh_annual * twh2gw) |>
-    select(year, gw)
 
 # UK total electricity generation from Our World in Data:
 # https://ourworldindata.org/grapher/electricity-generation
@@ -179,8 +167,6 @@ uk_total <- readRDS(uk_total_file) |>
 # Statistics (DUKES) table 6.2, "Capacity of, generation from renewable
 # sources and shares of total generation", 1990 onward:
 # https://www.gov.uk/government/statistics/renewable-sources-of-energy-chapter-6-digest-of-united-kingdom-energy-statistics-dukes
-# Our World in Data doesn't split wind into onshore and offshore. DUKES total
-# wind is within 1% of Our World in Data's (86.4 vs 85.8 TWh in 2025)
 dukes_6_2_url <- 'https://assets.publishing.service.gov.uk/media/6a6a27620c36759b5ccaa1d1/DUKES_6.2.xlsx'
 dukes_6_2 <- file.path(data_dir, basename(dukes_6_2_url))
 if (!file.exists(dukes_6_2))
@@ -268,6 +254,11 @@ stopifnot(nrow(uk_wind_type_shares) == 2 * length(2007:2025))
 uk_onshore_wind <- uk_wind_by_type |>
     filter(type == 'onshore') |>
     select(year, gw)
+
+# Total UK wind generation, onshore plus offshore
+uk_wind <- uk_wind_by_type |>
+    group_by(year) |>
+    summarise(gw = sum(gw))
 
 # Population, from FRED (https://fred.stlouisfed.org), both through 2025:
 # - Texas: TXPOP, US Census Bureau resident population, in thousands
