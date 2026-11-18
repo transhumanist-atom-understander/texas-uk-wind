@@ -372,9 +372,10 @@ combined_density <- combined_onshore_wind |>
     inner_join(combined_total |> rename(gw_total = gw),
                by = c('place', 'year')) |>
     inner_join(land_area, by = 'place') |>
-    mutate(onshore_wind_mw_per_m2 =
+    mutate(onshore_wind_density_mw_per_m2 =
                gw_onshore_wind * gw2mw / (land_km2 * km2_to_m2),
-           total_mw_per_m2 = gw_total * gw2mw / (land_km2 * km2_to_m2))
+           total_density_mw_per_m2 =
+               gw_total * gw2mw / (land_km2 * km2_to_m2))
 stopifnot(nrow(combined_density) == 2 * length(2007:2025))
 
 #' Line plot of a yearly value for Texas and the UK
@@ -477,13 +478,13 @@ ggsave('uk_onshore_offshore_share_of_generation.png',
        uk_wind_type_total_share_plot,
        width = unit(4, 'in'), height = unit(4, 'in'))
 
-wind_density_plot <- place_plot(combined_density, 'onshore_wind_mw_per_m2',
+wind_density_plot <- place_plot(combined_density, 'onshore_wind_density_mw_per_m2',
                                 'Average mW per square metre',
                                 'Onshore wind power density')
 ggsave('onshore_wind_density.png', wind_density_plot,
        width = unit(4, 'in'), height = unit(4, 'in'))
 
-total_density_plot <- place_plot(combined_density, 'total_mw_per_m2',
+total_density_plot <- place_plot(combined_density, 'total_density_mw_per_m2',
                                  'Average mW per square metre',
                                  'Total generation density')
 ggsave('total_generation_density.png', total_density_plot,
@@ -503,7 +504,8 @@ values_2025 <- combined_per_capita |>
     inner_join(combined_density |>
                    filter(year == 2025) |>
                    select(place, onshore_wind_gw = gw_onshore_wind, land_km2,
-                          onshore_wind_mw_per_m2, total_mw_per_m2),
+                          onshore_wind_density_mw_per_m2,
+                          total_density_mw_per_m2),
                by = 'place') |>
     left_join(uk_wind_by_type |>
                   filter(year == 2025, type == 'offshore') |>
