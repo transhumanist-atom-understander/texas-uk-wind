@@ -10,8 +10,6 @@ Well, in Texas it was 24%, but that's more impressive than 29% of UK electricity
 
 While the UK doesn't need as much electricity as Texas, because they don't have to air condition houses in the Texas heat, they need more than they're generating.
 They could use some air conditioning, first of all.
-They don't have dryers.
-Or, have them but don't run them, [like this guy on r/AskUK](https://www.reddit.com/r/AskUK/comments/10o6hll/comment/j6e1x5m/), because of the electricity bill.
 
 There was [a BBC article](https://www.bbc.com/news/articles/c86ey5n9vx9o) where they talked to a guy who had a heat pump installed, but went back to using the gas boiler, because it was so expensive to power the heat pump.
 This kind of thing is why Brits can't spin their low electricity use as enlightened and environmentally friendly.
@@ -27,7 +25,7 @@ But Texas has also pulled ahead in _density_ of onshore wind generation, with ab
 
 ![](https://res.cloudinary.com/lesswrong-2-0/image/upload/v1794984532/lexical_client_uploads/aidbpbgdxmaouca5yw5b.png)
 
-(UK onshore/offshore data from [DUKES](https://www.gov.uk/government/statistics/renewable-sources-of-energy-chapter-6-digest-of-united-kingdom-energy-statistics-dukes))
+(UK onshore vs offshore breakdown from [DUKES](https://www.gov.uk/government/statistics/renewable-sources-of-energy-chapter-6-digest-of-united-kingdom-energy-statistics-dukes))
 
 What went wrong?
 Building onshore wind in England was de facto illegal for years, and is still proceeding slowly.
