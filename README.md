@@ -6,7 +6,7 @@ The United Kingdom generates less wind power than Texas every year, despite havi
 
 I'm just irritated by people citing the UK as a major renewable energy success, always quoting relative numbers.
 Like: in 2025, 30% of UK electricity came from wind, how impressive.
-Well, in Texas it was 24%, but that's more impressive than 29% of UK electricity because the UK doesn't generate that much electricity.
+Well, in Texas it was 24%, but that's more impressive than 30% of UK electricity because the UK doesn't generate that much electricity.
 
 While the UK doesn't need as much electricity as Texas, because they don't have to air condition houses in the Texas heat, they need more than they're generating.
 They could use some air conditioning, first of all.
