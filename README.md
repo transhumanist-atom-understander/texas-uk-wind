@@ -2,7 +2,7 @@ The United Kingdom generates less wind power than Texas every year, despite havi
 
 ![](https://res.cloudinary.com/lesswrong-2-0/image/upload/v1794984516/lexical_client_uploads/jwnff718exvitkng1ipc.png)
 
-(Texas data from [ERCOT](https://www.ercot.com/gridinfo/generation), UK data from [OWID](https://ourworldindata.org/grapher/wind-generation), code in [the repo for this post](https://github.com/transhumanist-atom-understander/texas-uk-wind).)
+(Texas data from [ERCOT](https://www.ercot.com/gridinfo/generation), UK data from [OWID](https://ourworldindata.org/grapher/electricity-mix?tab=line&time=2007..latest&country=%7EGBR&mapSelect=%7EGBR&source=wind&metric=generation&frequency=annual), code in [the repo for this post](https://github.com/transhumanist-atom-understander/texas-uk-wind).)
 
 I'm just irritated by people citing the UK as a major renewable energy success, always quoting relative numbers.
 Like: in 2025, 29% of UK electricity came from wind, how impressive.
