@@ -305,8 +305,8 @@ combined_population <- bind_rows(
     filter(year >= 2007, year <= 2025)
 stopifnot(nrow(combined_population) == 2 * length(2007:2025))
 
-# Land area, excluding inland water, in square kilometres
-# - Texas: US Census Bureau 2025 Gazetteer, ALAND (square metres)
+# Land area, excluding inland water, in square kilometers
+# - Texas: US Census Bureau 2025 Gazetteer, ALAND (square meters)
 #   https://www.census.gov/geographies/reference-files/time-series/geo/gazetteer-files.html
 # - UK: ONS Standard Area Measurements for the Countries (December 2024),
 #   AREALHECT (hectares), summed over the four countries
@@ -363,7 +363,7 @@ combined_onshore_wind <- bind_rows(
     uk = uk_onshore_wind,
     .id = 'place')
 
-# Onshore wind power density, as average milliwatts per square metre of land
+# Onshore wind power density, as average milliwatts per square meter of land
 gw2mw <- 1e12
 km2_to_m2 <- 1e6
 combined_density <- combined_onshore_wind |>
@@ -475,7 +475,7 @@ ggsave('uk_onshore_offshore_share_of_generation.png',
 
 wind_density_plot <- place_plot(combined_density,
                                 'onshore_wind_density_mw_per_m2',
-                                'Average mW per square metre',
+                                'Average mW per square meter',
                                 'Onshore wind power density')
 ggsave('onshore_wind_density.png', wind_density_plot,
        width = unit(4, 'in'), height = unit(4, 'in'))
