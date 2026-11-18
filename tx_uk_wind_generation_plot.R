@@ -81,7 +81,7 @@ read_ercot_new <- function(path)
 # folder (or individual files) to download fresh copies
 data_dir <- 'data'
 dir.create(data_dir, showWarnings = FALSE)
-# The ERCOT zip is ~70 MB; the default 60 s timeout can be too short
+# The ERCOT zip is ~50 MB; the default 60 s timeout can be too short
 options(timeout = max(600, getOption('timeout')))
 
 # ERCOT fuel mix reports, from https://www.ercot.com/gridinfo/generation
