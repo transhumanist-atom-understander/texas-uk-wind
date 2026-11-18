@@ -1,6 +1,7 @@
 library(tidyverse)
 library(readxl)
 library(cowplot)
+library(owidapi)
 theme_set(theme_cowplot())
 
 #' Read annual ERCOT generation by fuel, in the older format used 2007 to 2016
@@ -70,11 +71,18 @@ read_ercot_new <- function(path)
     return(out)
 }
 
-# Files from:
+# ERCOT fuel mix reports, from "Fuel Mix Report: 2007 - 2024" at
 # https://www.ercot.com/gridinfo/generation
-# Download and unzip "Fuel Mix Report: 2007 - 2024"
-infiles <- tibble(filename = Sys.glob('IntGen*yFuel*.xls*'),
-        year = as.integer(str_extract(filename, '^IntGen[Bb]yFuel(\\d+)\\.xls',
+ercot_url <- 'https://www.ercot.com/files/docs/2021/03/10/FuelMixReport_PreviousYears.zip'
+ercot_dir <- file.path(tempdir(), 'ercot')
+ercot_zip <- file.path(ercot_dir, basename(ercot_url))
+dir.create(ercot_dir, showWarnings = FALSE)
+# The zip is ~70 MB; the default 60 s timeout can be too short
+options(timeout = max(600, getOption('timeout')))
+download.file(ercot_url, ercot_zip, mode = 'wb')
+infiles <- tibble(filename = unzip(ercot_zip, exdir = ercot_dir),
+        year = as.integer(str_extract(basename(filename),
+                                      '^IntGen[Bb]yFuel(\\d+)\\.xls',
                                       group = 1)))
 
 # One megawatt hour per year in gigawatts
@@ -110,20 +118,16 @@ texas_wind_generation <- texas_generation |>
 # Check that all years are present
 stopifnot(all(2007:2024 %in% texas_wind_generation$year))
 
-# UK wind generation retrieved from:
-# https://ourworldindata.org/grapher/wind-generation?tab=line&yScale=linear&time=2007..latest&country=~GBR
+# UK wind generation from Our World in Data:
+# https://ourworldindata.org/grapher/wind-generation
 
 # Converting terawatt hours per year to gigawatts
 # Mathematica:
 # UnitConvert[Quantity[1, "Hours" "Terawatts"]*Quantity[1, (1/("Years"))], "GW"]
 twh2gw <- 25/219
 
-uk_wind <- read_csv('wind-generation.csv', col_types = cols(
-        Entity = col_character(),
-        Code = col_character(),
-        Year = col_integer(),
-        `Electricity from wind - TWh` = col_double())) |>
-    select(year = Year, twh_annual = `Electricity from wind - TWh`) |>
+uk_wind <- owid_get('wind-generation', entities = 'GBR', start_date = 2007) |>
+    select(year, twh_annual = wind_generation__twh) |>
     mutate(gw = twh_annual * twh2gw) |>
     select(year, gw)
 
