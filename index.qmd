@@ -1,5 +1,5 @@
 The United Kingdom has not generated more wind power than the state of Texas in any year since 2000, despite having over twice the population.
-(Texas data from ERCOT, UK data from OWID, code in the repo for this post.)
+(Texas data from [ERCOT](https://www.ercot.com/gridinfo/generation), UK data from [OWID](https://ourworldindata.org/grapher/wind-generation), code in [the repo for this post](https://github.com/transhumanist-atom-understander/texas-uk-wind).)
 
 I'm just irritated by people citing the UK as a major renewable energy success, always quoting relative numbers.
 Like: in 2025, 29% of UK electricity came from wind, how impressive.
