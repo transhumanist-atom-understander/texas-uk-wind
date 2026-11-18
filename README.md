@@ -17,7 +17,7 @@ There was [a BBC article](https://www.bbc.com/news/articles/c86ey5n9vx9o) where 
 This kind of thing is why Brits can't spin their low electricity use as enlightened and environmentally friendly.
 They have big plans for heat pumps, electric cars, hydrogen, but can't power them.
 
-So I'm irritated with those trumpeting the UK as a renewable energy success, but I'm also irritated with the opposition to wind.
+So I'm irritated by those trumpeting the UK as a renewable energy success, but I'm also irritated by the opposition to wind.
 As if the issue is that in an insane spending spree, too many wind turbines were built, when really it is just not that much.
 These people blend in with the opposition to building anything at all.
 
