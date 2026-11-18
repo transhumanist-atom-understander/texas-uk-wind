@@ -174,6 +174,42 @@ uk_total <- readRDS(uk_total_file) |>
     mutate(gw = twh_annual * twh2gw) |>
     select(year, gw)
 
+# Population, from FRED (https://fred.stlouisfed.org), both through 2025:
+# - Texas: TXPOP, US Census Bureau resident population, in thousands
+# - UK: POPTOTGBA647NWDB, World Bank total population
+# Our World in Data's population series currently stops at 2023, so it isn't
+# used here
+
+#' Read an annual FRED series, downloading it to data_dir if needed
+#'
+#' @param series_id FRED series ID
+#' @return tibble with columns: year, value
+read_fred_annual <- function(series_id)
+{
+    path <- file.path(data_dir, paste0(series_id, '.csv'))
+    if (!file.exists(path))
+        download.file(paste0('https://fred.stlouisfed.org/graph/fredgraph.csv?id=',
+                             series_id),
+                      path, mode = 'wb')
+    readr::read_csv(path, col_types = 'Dd') |>
+        select(date = observation_date, value = all_of(series_id)) |>
+        mutate(year = as.integer(format(date, '%Y'))) |>
+        select(year, value)
+}
+
+texas_population <- read_fred_annual('TXPOP') |>
+    mutate(population = value * 1000) |>
+    select(year, population)
+uk_population <- read_fred_annual('POPTOTGBA647NWDB') |>
+    rename(population = value)
+
+combined_population <- bind_rows(
+    texas = texas_population,
+    uk = uk_population,
+    .id = 'place') |>
+    filter(year >= 2007, year <= 2025)
+stopifnot(nrow(combined_population) == 2 * length(2007:2025))
+
 combined_wind <- bind_rows(
     texas = texas_wind_generation,
     uk = uk_wind,
@@ -189,6 +225,13 @@ combined_share <- inner_join(combined_wind, combined_total,
                              by = c('place', 'year'),
                              suffix = c('_wind', '_total')) |>
     mutate(share_pct = 100 * gw_wind / gw_total)
+
+# Per capita generation, as average watts per person
+gw2w <- 1e9
+combined_per_capita <- inner_join(combined_share, combined_population,
+                                  by = c('place', 'year')) |>
+    mutate(wind_w_per_capita = gw_wind * gw2w / population,
+           total_w_per_capita = gw_total * gw2w / population)
 
 #' Line plot of a yearly value for Texas and the UK
 #'
@@ -228,13 +271,35 @@ total_plot <- place_plot(combined_total, 'gw', 'Average generation (GW)',
 ggsave('total_generation.png', total_plot,
        width = unit(4, 'in'), height = unit(4, 'in'))
 
-# 2025 values for all three plots
-values_2025 <- combined_share |>
+population_plot <- place_plot(combined_population |>
+                                  mutate(population_m = population / 1e6),
+                              'population_m', 'Population (millions)',
+                              'Population')
+ggsave('population.png', population_plot,
+       width = unit(4, 'in'), height = unit(4, 'in'))
+
+wind_per_capita_plot <- place_plot(combined_per_capita, 'wind_w_per_capita',
+                                   'Average W per person',
+                                   'Wind generation per capita')
+ggsave('wind_generation_per_capita.png', wind_per_capita_plot,
+       width = unit(4, 'in'), height = unit(4, 'in'))
+
+total_per_capita_plot <- place_plot(combined_per_capita, 'total_w_per_capita',
+                                    'Average W per person',
+                                    'Total generation per capita')
+ggsave('total_generation_per_capita.png', total_per_capita_plot,
+       width = unit(4, 'in'), height = unit(4, 'in'))
+
+# 2025 values for all plots
+values_2025 <- combined_per_capita |>
     filter(year == 2025) |>
     transmute(place = c('texas' = 'Texas', 'uk' = 'UK')[place],
               year,
               wind_gw = gw_wind,
               total_gw = gw_total,
-              wind_share_pct = share_pct)
+              wind_share_pct = share_pct,
+              population,
+              wind_w_per_capita,
+              total_w_per_capita)
 stopifnot(nrow(values_2025) == 2)
 write_csv(values_2025, 'values_2025.csv')
