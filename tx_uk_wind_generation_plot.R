@@ -3,6 +3,7 @@ library(ggplot2)
 library(readr)
 library(stringr)
 library(tibble)
+library(tidyr)
 library(readxl)
 library(cowplot)
 library(owidapi)
@@ -290,16 +291,23 @@ total_per_capita_plot <- place_plot(combined_per_capita, 'total_w_per_capita',
 ggsave('total_generation_per_capita.png', total_per_capita_plot,
        width = unit(4, 'in'), height = unit(4, 'in'))
 
-# 2025 values for all plots
+# 2025 values for all plots, one row per metric with a column per place,
+# plus the ratios between places in both directions
 values_2025 <- combined_per_capita |>
     filter(year == 2025) |>
-    transmute(place = c('texas' = 'Texas', 'uk' = 'UK')[place],
-              year,
+    transmute(place,
               wind_gw = gw_wind,
               total_gw = gw_total,
               wind_share_pct = share_pct,
               population,
               wind_w_per_capita,
-              total_w_per_capita)
-stopifnot(nrow(values_2025) == 2)
+              total_w_per_capita) |>
+    pivot_longer(-place, names_to = 'metric') |>
+    pivot_wider(names_from = place, values_from = value) |>
+    mutate(texas_to_uk_ratio = texas / uk,
+           uk_to_texas_ratio = uk / texas)
+stopifnot(nrow(values_2025) == 6,
+          identical(names(values_2025),
+                    c('metric', 'texas', 'uk',
+                      'texas_to_uk_ratio', 'uk_to_texas_ratio')))
 write_csv(values_2025, 'values_2025.csv')
