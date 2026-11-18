@@ -186,50 +186,85 @@ dukes_6_2 <- file.path(data_dir, basename(dukes_6_2_url))
 if (!file.exists(dukes_6_2))
     download.file(dukes_6_2_url, dukes_6_2, mode = 'wb')
 
-#' Read UK onshore and offshore wind generation from DUKES table 6.2
+#' Read UK onshore and offshore wind generation, and total electricity
+#' generation, from DUKES table 6.2
 #'
 #' FORMAT ASSUMPTIONS
 #' - Worksheet is named '6.2'
 #' - Three tables stacked vertically (capacity, generation, shares), each
-#'   starting with a header row of years, with the table name in column 1
+#'   starting with a header row of years, with the table name in column 1,
+#'   and separated by a blank row
 #' - The generation table's header starts with 'Generation (GWh)', and its
 #'   first 'Onshore' and 'Offshore' rows are the wind rows
+#' - The shares table's header starts with 'Shares of total electricity
+#'   generation', and it has a row starting with 'Total electricity
+#'   generation (GWh)'
 #'
 #' @param path  Path to the Excel workbook (.xlsx)
-#' @return tibble with columns: year, type ('onshore' or 'offshore'),
-#'   gwh_annual
+#' @return tibble with columns: year, type ('onshore', 'offshore', or
+#'   'all_sources' for total electricity generation), gwh_annual
 read_dukes_wind <- function(path)
 {
     df <- readxl::read_excel(path, sheet = '6.2', col_names = FALSE,
                              col_types = 'text', .name_repair = 'minimal')
     labels <- df[[1]]
-    header_row <- which(str_starts(labels, fixed('Generation (GWh)')))
-    stopifnot(length(header_row) == 1)
-    # The generation table ends at the first blank row after its header
-    end_row <- header_row +
-        which(is.na(labels[-(1:header_row)]))[1] - 1
-    table_rows <- (header_row + 1):end_row
-    years <- as.integer(unlist(df[header_row, -1]))
-    stopifnot(!anyNA(years))
 
-    wind_row <- function(label)
+    # Row numbers of the table whose header starts with header_prefix,
+    # header row first. A table ends at the first blank row after its header
+    # (or the end of the sheet)
+    table_rows <- function(header_prefix)
     {
-        row <- table_rows[labels[table_rows] == label][1]
+        header_row <- which(str_starts(labels, fixed(header_prefix)))
+        stopifnot(length(header_row) == 1)
+        blank <- which(is.na(labels[-(1:header_row)]))
+        end_row <- if (length(blank) > 0) header_row + blank[1] - 1
+                   else length(labels)
+        header_row:end_row
+    }
+
+    # Annual values from the first row in rows whose label starts with label
+    read_row <- function(rows, label)
+    {
+        years <- as.integer(unlist(df[rows[1], -1]))
+        stopifnot(!anyNA(years))
+        row <- rows[-1][str_starts(labels[rows[-1]], fixed(label))][1]
         stopifnot(!is.na(row))
         tibble(year = years,
                gwh_annual = readr::parse_number(unlist(df[row, -1])))
     }
-    bind_rows(onshore = wind_row('Onshore'),
-              offshore = wind_row('Offshore'),
+
+    generation <- table_rows('Generation (GWh)')
+    shares <- table_rows('Shares of total electricity generation')
+    bind_rows(onshore = read_row(generation, 'Onshore'),
+              offshore = read_row(generation, 'Offshore'),
+              all_sources = read_row(shares,
+                                     'Total electricity generation (GWh)'),
               .id = 'type')
 }
 
-uk_wind_by_type <- read_dukes_wind(dukes_6_2) |>
+dukes_generation <- read_dukes_wind(dukes_6_2)
+uk_wind_by_type <- dukes_generation |>
+    filter(type %in% c('onshore', 'offshore')) |>
     filter(year >= 2007, year <= 2025) |>
     mutate(gw = gwh_annual * gwh2gw) |>
     select(year, type, gw)
 stopifnot(nrow(uk_wind_by_type) == 2 * length(2007:2025),
           !anyNA(uk_wind_by_type$gw))
+
+# Onshore and offshore as percentages of UK wind generation, and of UK total
+# electricity generation, all from DUKES so that they're consistent
+uk_dukes_total <- dukes_generation |>
+    filter(type == 'all_sources') |>
+    select(year, gw_all_sources = gwh_annual) |>
+    mutate(gw_all_sources = gw_all_sources * gwh2gw)
+uk_wind_type_shares <- uk_wind_by_type |>
+    group_by(year) |>
+    mutate(pct_of_wind = 100 * gw / sum(gw)) |>
+    ungroup() |>
+    inner_join(uk_dukes_total, by = 'year') |>
+    mutate(pct_of_all_generation = 100 * gw / gw_all_sources)
+stopifnot(nrow(uk_wind_type_shares) == 2 * length(2007:2025))
+
 uk_onshore_wind <- uk_wind_by_type |>
     filter(type == 'onshore') |>
     select(year, gw)
@@ -399,19 +434,47 @@ total_per_capita_plot <- place_plot(combined_per_capita, 'total_w_per_capita',
 ggsave('total_generation_per_capita.png', total_per_capita_plot,
        width = unit(4, 'in'), height = unit(4, 'in'))
 
-uk_wind_type_plot <- ggplot(uk_wind_by_type,
-                            aes(x = year, y = gw, color = type)) +
-    geom_line() +
-    geom_point() +
-    scale_x_continuous(name = 'Year') +
-    scale_y_continuous(name = 'Average generation (GW)', limits = c(0, NA)) +
-    scale_color_discrete(name = NULL,
-                         breaks = c('onshore', 'offshore'),
-                         labels = c('onshore' = 'Onshore',
-                                    'offshore' = 'Offshore')) +
-    theme(legend.position = 'bottom') +
-    ggtitle('UK wind generation')
+#' Line plot of a yearly value for UK onshore and offshore wind
+#'
+#' @param data  tibble with columns type, year, and the y variable
+#' @param y     Name of the column to plot on the y axis
+#' @param ylab  Y axis label
+#' @param title Plot title
+#' @param ylim  Y axis limits
+#' @return ggplot object
+wind_type_plot <- function(data, y, ylab, title, ylim = c(0, NA))
+{
+    ggplot(data, aes(x = year, y = .data[[y]], color = type)) +
+        geom_line() +
+        geom_point() +
+        scale_x_continuous(name = 'Year') +
+        scale_y_continuous(name = ylab, limits = ylim) +
+        scale_color_discrete(name = NULL,
+                             breaks = c('onshore', 'offshore'),
+                             labels = c('onshore' = 'Onshore',
+                                        'offshore' = 'Offshore')) +
+        theme(legend.position = 'bottom') +
+        ggtitle(title)
+}
+
+uk_wind_type_plot <- wind_type_plot(uk_wind_by_type, 'gw',
+                                    'Average generation (GW)',
+                                    'UK wind generation')
 ggsave('uk_onshore_offshore_wind.png', uk_wind_type_plot,
+       width = unit(4, 'in'), height = unit(4, 'in'))
+
+uk_wind_type_share_plot <- wind_type_plot(uk_wind_type_shares, 'pct_of_wind',
+                                          'Share of wind generation (%)',
+                                          'UK wind by type',
+                                          ylim = c(0, 100))
+ggsave('uk_onshore_offshore_share_of_wind.png', uk_wind_type_share_plot,
+       width = unit(4, 'in'), height = unit(4, 'in'))
+
+uk_wind_type_total_share_plot <- wind_type_plot(
+    uk_wind_type_shares, 'pct_of_all_generation',
+    'Share of all generation (%)', 'UK wind share by type')
+ggsave('uk_onshore_offshore_share_of_generation.png',
+       uk_wind_type_total_share_plot,
        width = unit(4, 'in'), height = unit(4, 'in'))
 
 wind_density_plot <- place_plot(combined_density, 'onshore_wind_mw_per_m2',
@@ -447,12 +510,16 @@ values_2025 <- combined_per_capita |>
                   transmute(place = 'uk', offshore_wind_gw = gw),
               by = 'place') |>
     # Texas has no offshore wind
-    mutate(offshore_wind_gw = coalesce(offshore_wind_gw, 0)) |>
+    mutate(offshore_wind_gw = coalesce(offshore_wind_gw, 0),
+           onshore_pct_of_wind = 100 * onshore_wind_gw /
+               (onshore_wind_gw + offshore_wind_gw),
+           offshore_pct_of_wind = 100 * offshore_wind_gw /
+               (onshore_wind_gw + offshore_wind_gw)) |>
     pivot_longer(-place, names_to = 'metric') |>
     pivot_wider(names_from = place, values_from = value) |>
     mutate(texas_to_uk_ratio = texas / uk,
            uk_to_texas_ratio = uk / texas)
-stopifnot(nrow(values_2025) == 11,
+stopifnot(nrow(values_2025) == 13,
           identical(names(values_2025),
                     c('metric', 'texas', 'uk',
                       'texas_to_uk_ratio', 'uk_to_texas_ratio')))
