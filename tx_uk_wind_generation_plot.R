@@ -7,7 +7,7 @@ library(readxl)
 library(cowplot)
 library(owidapi)
 theme_set(theme_cowplot() +
-          theme(plot.background = element_rect(fill = 'white', colour = NA)))
+          theme(plot.background = element_rect(fill = 'white')))
 
 #' Read annual ERCOT generation by fuel, in the older format used 2007 to 2016
 #'
