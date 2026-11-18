@@ -71,20 +71,29 @@ read_ercot_new <- function(path)
     return(out)
 }
 
-# ERCOT fuel mix reports, from "Fuel Mix Report: 2007 - 2024" at
-# https://www.ercot.com/gridinfo/generation
-ercot_url <- 'https://www.ercot.com/files/docs/2021/03/10/FuelMixReport_PreviousYears.zip'
-ercot_dir <- file.path(tempdir(), 'ercot')
-ercot_zip <- file.path(ercot_dir, basename(ercot_url))
-dir.create(ercot_dir, showWarnings = FALSE)
-# The zip is ~70 MB; the default 60 s timeout can be too short
+# Downloaded data is saved in 'data' and reused on later runs; delete the
+# folder (or individual files) to download fresh copies
+data_dir <- 'data'
+dir.create(data_dir, showWarnings = FALSE)
+# The ERCOT zip is ~70 MB; the default 60 s timeout can be too short
 options(timeout = max(600, getOption('timeout')))
-download.file(ercot_url, ercot_zip, mode = 'wb')
+
+# ERCOT fuel mix reports, from https://www.ercot.com/gridinfo/generation
+# "Fuel Mix Report: 2007 - 2024" is a zip of one workbook per year
+ercot_url <- 'https://www.ercot.com/files/docs/2021/03/10/FuelMixReport_PreviousYears.zip'
+ercot_zip <- file.path(data_dir, basename(ercot_url))
+if (!file.exists(ercot_zip)) {
+    download.file(ercot_url, ercot_zip, mode = 'wb')
+    unzip(ercot_zip, exdir = data_dir)
+}
 # 2025 is published as its own file, "Fuel Mix Report: 2025"
 ercot_2025_url <- 'https://www.ercot.com/files/docs/2025/02/07/IntGenbyFuel2025.xlsx'
-ercot_2025 <- file.path(ercot_dir, basename(ercot_2025_url))
-download.file(ercot_2025_url, ercot_2025, mode = 'wb')
-infiles <- tibble(filename = c(unzip(ercot_zip, exdir = ercot_dir), ercot_2025),
+ercot_2025 <- file.path(data_dir, basename(ercot_2025_url))
+if (!file.exists(ercot_2025))
+    download.file(ercot_2025_url, ercot_2025, mode = 'wb')
+infiles <- tibble(
+        filename = c(file.path(data_dir, unzip(ercot_zip, list = TRUE)$Name),
+                     ercot_2025),
         year = as.integer(str_extract(basename(filename),
                                       '^IntGen[Bb]yFuel(\\d+)\\.xls',
                                       group = 1)))
@@ -130,7 +139,11 @@ stopifnot(all(2007:2025 %in% texas_wind_generation$year))
 # UnitConvert[Quantity[1, "Hours" "Terawatts"]*Quantity[1, (1/("Years"))], "GW"]
 twh2gw <- 25/219
 
-uk_wind <- owid_get('wind-generation', entities = 'GBR', start_date = 2007) |>
+uk_file <- file.path(data_dir, 'uk_wind_generation.rds')
+if (!file.exists(uk_file))
+    saveRDS(owid_get('wind-generation', entities = 'GBR', start_date = 2007),
+            uk_file)
+uk_wind <- readRDS(uk_file) |>
     select(year, twh_annual = wind_generation__twh) |>
     mutate(gw = twh_annual * twh2gw) |>
     select(year, gw)
