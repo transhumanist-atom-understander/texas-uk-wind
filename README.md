@@ -38,5 +38,5 @@ I suppose that when it's hard to build power lines, wind developments are constr
 In a wider sense, I don't know what went wrong.
 Something about culture, financing, government, I don't know.
 
-This is just all what I want you to have in mind when you hear about the _fraction_ of UK power generated from wind.
-That should sound like "over half as tall as Danny Devito" or whatever other underwhelming comparisons.
+All this is just what I want you to have in mind when you hear about the _fraction_ of UK power generated from wind.
+That should sound like "over half as tall as Danny Devito" or whatever other underwhelming comparison.
