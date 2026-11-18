@@ -19,7 +19,7 @@ They have big plans for heat pumps, electric cars, hydrogen, but can't power the
 
 So I'm irritated with those trumpeting the UK as a renewable energy success, but I'm also irritated with the opposition to wind.
 As if the issue is that in an insane spending spree, too many wind turbines were built, when really it is just not that much.
-They blend in with the opposition to building anything at all.
+These people blend in with the opposition to building anything at all.
 
 Texas's wind capacity has been much cheaper to build because it is entirely onshore, whereas UK wind generation was 60% offshore in 2025.
 We must forgive the UK for having less onshore wind than Texas, because they have less land.
