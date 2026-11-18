@@ -175,6 +175,65 @@ uk_total <- readRDS(uk_total_file) |>
     mutate(gw = twh_annual * twh2gw) |>
     select(year, gw)
 
+# UK onshore and offshore wind generation, from DESNZ's Digest of UK Energy
+# Statistics (DUKES) table 6.2, "Capacity of, generation from renewable
+# sources and shares of total generation", 1990 onward:
+# https://www.gov.uk/government/statistics/renewable-sources-of-energy-chapter-6-digest-of-united-kingdom-energy-statistics-dukes
+# Our World in Data doesn't split wind into onshore and offshore. DUKES total
+# wind is within 1% of Our World in Data's (86.4 vs 85.8 TWh in 2025)
+dukes_6_2_url <- 'https://assets.publishing.service.gov.uk/media/6a6a27620c36759b5ccaa1d1/DUKES_6.2.xlsx'
+dukes_6_2 <- file.path(data_dir, basename(dukes_6_2_url))
+if (!file.exists(dukes_6_2))
+    download.file(dukes_6_2_url, dukes_6_2, mode = 'wb')
+
+#' Read UK onshore and offshore wind generation from DUKES table 6.2
+#'
+#' FORMAT ASSUMPTIONS
+#' - Worksheet is named '6.2'
+#' - Three tables stacked vertically (capacity, generation, shares), each
+#'   starting with a header row of years, with the table name in column 1
+#' - The generation table's header starts with 'Generation (GWh)', and its
+#'   first 'Onshore' and 'Offshore' rows are the wind rows
+#'
+#' @param path  Path to the Excel workbook (.xlsx)
+#' @return tibble with columns: year, type ('onshore' or 'offshore'),
+#'   gwh_annual
+read_dukes_wind <- function(path)
+{
+    df <- readxl::read_excel(path, sheet = '6.2', col_names = FALSE,
+                             col_types = 'text', .name_repair = 'minimal')
+    labels <- df[[1]]
+    header_row <- which(str_starts(labels, fixed('Generation (GWh)')))
+    stopifnot(length(header_row) == 1)
+    # The generation table ends at the first blank row after its header
+    end_row <- header_row +
+        which(is.na(labels[-(1:header_row)]))[1] - 1
+    table_rows <- (header_row + 1):end_row
+    years <- as.integer(unlist(df[header_row, -1]))
+    stopifnot(!anyNA(years))
+
+    wind_row <- function(label)
+    {
+        row <- table_rows[labels[table_rows] == label][1]
+        stopifnot(!is.na(row))
+        tibble(year = years,
+               gwh_annual = readr::parse_number(unlist(df[row, -1])))
+    }
+    bind_rows(onshore = wind_row('Onshore'),
+              offshore = wind_row('Offshore'),
+              .id = 'type')
+}
+
+uk_wind_by_type <- read_dukes_wind(dukes_6_2) |>
+    filter(year >= 2007, year <= 2025) |>
+    mutate(gw = gwh_annual * gwh2gw) |>
+    select(year, type, gw)
+stopifnot(nrow(uk_wind_by_type) == 2 * length(2007:2025),
+          !anyNA(uk_wind_by_type$gw))
+uk_onshore_wind <- uk_wind_by_type |>
+    filter(type == 'onshore') |>
+    select(year, gw)
+
 # Population, from FRED (https://fred.stlouisfed.org), both through 2025:
 # - Texas: TXPOP, US Census Bureau resident population, in thousands
 # - UK: POPTOTGBA647NWDB, World Bank total population
@@ -211,6 +270,35 @@ combined_population <- bind_rows(
     filter(year >= 2007, year <= 2025)
 stopifnot(nrow(combined_population) == 2 * length(2007:2025))
 
+# Land area, excluding inland water, in square kilometres
+# - Texas: US Census Bureau 2025 Gazetteer, ALAND (square metres)
+#   https://www.census.gov/geographies/reference-files/time-series/geo/gazetteer-files.html
+# - UK: ONS Standard Area Measurements for the Countries (December 2024),
+#   AREALHECT (hectares), summed over the four countries
+#   https://www.data.gov.uk/dataset/standard-area-measurements-for-the-countries-december-2024-in-the-uk
+census_gazetteer_url <- 'https://www2.census.gov/geo/docs/maps-data/data/gazetteer/2025_Gazetteer/2025_Gaz_state_national.zip'
+census_gazetteer <- file.path(data_dir, basename(census_gazetteer_url))
+if (!file.exists(census_gazetteer))
+    download.file(census_gazetteer_url, census_gazetteer, mode = 'wb')
+ons_area_url <- 'https://open-geography-portalx-ons.hub.arcgis.com/api/download/v1/items/6472b111caef42d793fe9d263643dcfb/csv?layers=0'
+ons_area <- file.path(data_dir, 'uk_standard_area_measurements_2024.csv')
+if (!file.exists(ons_area))
+    download.file(ons_area_url, ons_area, mode = 'wb')
+
+texas_land_km2 <- readr::read_delim(
+        unz(census_gazetteer, '2025_Gaz_state_national.txt'),
+        delim = '|', col_types = readr::cols(.default = 'c')) |>
+    filter(USPS == 'TX') |>
+    pull(ALAND) |>
+    as.numeric() / 1e6
+uk_land_areas <- readr::read_csv(ons_area, col_types = readr::cols())
+stopifnot(nrow(uk_land_areas) == 4)
+uk_land_km2 <- sum(uk_land_areas$AREALHECT) / 100
+stopifnot(length(texas_land_km2) == 1, !is.na(texas_land_km2),
+          !is.na(uk_land_km2))
+land_area <- tibble(place = c('texas', 'uk'),
+                    land_km2 = c(texas_land_km2, uk_land_km2))
+
 combined_wind <- bind_rows(
     texas = texas_wind_generation,
     uk = uk_wind,
@@ -233,6 +321,26 @@ combined_per_capita <- inner_join(combined_share, combined_population,
                                   by = c('place', 'year')) |>
     mutate(wind_w_per_capita = gw_wind * gw2w / population,
            total_w_per_capita = gw_total * gw2w / population)
+
+# Onshore wind. All Texas wind is onshore
+combined_onshore_wind <- bind_rows(
+    texas = texas_wind_generation,
+    uk = uk_onshore_wind,
+    .id = 'place')
+
+# Power density, as average milliwatts per square metre of land. Wind density
+# uses onshore wind only
+gw2mw <- 1e12
+km2_to_m2 <- 1e6
+combined_density <- combined_onshore_wind |>
+    rename(gw_onshore_wind = gw) |>
+    inner_join(combined_total |> rename(gw_total = gw),
+               by = c('place', 'year')) |>
+    inner_join(land_area, by = 'place') |>
+    mutate(onshore_wind_mw_per_m2 =
+               gw_onshore_wind * gw2mw / (land_km2 * km2_to_m2),
+           total_mw_per_m2 = gw_total * gw2mw / (land_km2 * km2_to_m2))
+stopifnot(nrow(combined_density) == 2 * length(2007:2025))
 
 #' Line plot of a yearly value for Texas and the UK
 #'
@@ -291,6 +399,33 @@ total_per_capita_plot <- place_plot(combined_per_capita, 'total_w_per_capita',
 ggsave('total_generation_per_capita.png', total_per_capita_plot,
        width = unit(4, 'in'), height = unit(4, 'in'))
 
+uk_wind_type_plot <- ggplot(uk_wind_by_type,
+                            aes(x = year, y = gw, color = type)) +
+    geom_line() +
+    geom_point() +
+    scale_x_continuous(name = 'Year') +
+    scale_y_continuous(name = 'Average generation (GW)', limits = c(0, NA)) +
+    scale_color_discrete(name = NULL,
+                         breaks = c('onshore', 'offshore'),
+                         labels = c('onshore' = 'Onshore',
+                                    'offshore' = 'Offshore')) +
+    theme(legend.position = 'bottom') +
+    ggtitle('UK wind generation')
+ggsave('uk_onshore_offshore_wind.png', uk_wind_type_plot,
+       width = unit(4, 'in'), height = unit(4, 'in'))
+
+wind_density_plot <- place_plot(combined_density, 'onshore_wind_mw_per_m2',
+                                'Average mW per square metre',
+                                'Onshore wind power density')
+ggsave('onshore_wind_density.png', wind_density_plot,
+       width = unit(4, 'in'), height = unit(4, 'in'))
+
+total_density_plot <- place_plot(combined_density, 'total_mw_per_m2',
+                                 'Average mW per square metre',
+                                 'Total generation density')
+ggsave('total_generation_density.png', total_density_plot,
+       width = unit(4, 'in'), height = unit(4, 'in'))
+
 # 2025 values for all plots, one row per metric with a column per place,
 # plus the ratios between places in both directions
 values_2025 <- combined_per_capita |>
@@ -302,11 +437,22 @@ values_2025 <- combined_per_capita |>
               population,
               wind_w_per_capita,
               total_w_per_capita) |>
+    inner_join(combined_density |>
+                   filter(year == 2025) |>
+                   select(place, onshore_wind_gw = gw_onshore_wind, land_km2,
+                          onshore_wind_mw_per_m2, total_mw_per_m2),
+               by = 'place') |>
+    left_join(uk_wind_by_type |>
+                  filter(year == 2025, type == 'offshore') |>
+                  transmute(place = 'uk', offshore_wind_gw = gw),
+              by = 'place') |>
+    # Texas has no offshore wind
+    mutate(offshore_wind_gw = coalesce(offshore_wind_gw, 0)) |>
     pivot_longer(-place, names_to = 'metric') |>
     pivot_wider(names_from = place, values_from = value) |>
     mutate(texas_to_uk_ratio = texas / uk,
            uk_to_texas_ratio = uk / texas)
-stopifnot(nrow(values_2025) == 6,
+stopifnot(nrow(values_2025) == 11,
           identical(names(values_2025),
                     c('metric', 'texas', 'uk',
                       'texas_to_uk_ratio', 'uk_to_texas_ratio')))
