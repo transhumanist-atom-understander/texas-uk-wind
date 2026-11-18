@@ -2,7 +2,10 @@ library(tidyverse)
 library(readxl)
 library(cowplot)
 library(owidapi)
-theme_set(theme_cowplot())
+theme_set(theme_cowplot() +
+          theme(
+                plot.background = 'white'
+))
 
 #' Read annual ERCOT generation by fuel, in the older format used 2007 to 2016
 #'
