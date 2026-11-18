@@ -1,6 +1,6 @@
 The United Kingdom generates less wind power than Texas every year, despite having over twice the population:
 
-![](https://res.cloudinary.com/lesswrong-2-0/image/upload/v1794983095/lexical_client_uploads/teb3lnyhwkmvkg0vjchc.png)
+![](https://res.cloudinary.com/lesswrong-2-0/image/upload/v1794984516/lexical_client_uploads/jwnff718exvitkng1ipc.png)
 
 (Texas data from [ERCOT](https://www.ercot.com/gridinfo/generation), UK data from [OWID](https://ourworldindata.org/grapher/wind-generation), code in [the repo for this post](https://github.com/transhumanist-atom-understander/texas-uk-wind).)
 
@@ -25,7 +25,7 @@ Texas's wind capacity has been much cheaper to build because it is entirely onsh
 We must forgive the UK for having less onshore wind than Texas, because they have less land.
 But Texas has also pulled ahead in _density_ of onshore wind generation, with about 20% more generation per unit area than the UK in 2025:
 
-![](https://res.cloudinary.com/lesswrong-2-0/image/upload/v1794983110/lexical_client_uploads/zihraz2srrnf4cr6wcfa.png)
+![](https://res.cloudinary.com/lesswrong-2-0/image/upload/v1794984532/lexical_client_uploads/aidbpbgdxmaouca5yw5b.png)
 
 What went wrong?
 Building onshore wind in England was de facto illegal for years, and is still proceeding slowly.
