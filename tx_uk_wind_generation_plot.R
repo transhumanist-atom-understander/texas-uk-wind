@@ -1,8 +1,7 @@
 library(tidyverse)
 library(readxl)
 library(cowplot)
-library(ggdark)
-theme_set(dark_mode(theme_cowplot()))
+theme_set(theme_cowplot())
 
 #' Read annual ERCOT generation by fuel, in the older format used 2007 to 2016
 #'
